@@ -11,12 +11,15 @@
 (defparameter *mask-image-seq* 0)
 
 (defparameter *scene* (make-eng2-scene))
-(defparameter *robot* *pr2*)
-(defparameter *cam* (send *robot* :kinect_head-rgb))
+(defparameter *cam* (send *pr2* :kinect_head-rgb))
 
 (defparameter *object-name* (ros::get-param "~object_name"))
 (defparameter *mask-image-topic* (format nil "~A/~A" (ros::get-name) "output"))
 (defparameter *mask-image-frame-id* (ros::get-param "~frame_id" "/head_mount_kinect_rgb_optical_frame"))
+(defparameter *publish-marker-p* (ros::get-param "~publish_marker" nil))
+(defparameter *marker-topic* (format nil "~A/~A" (ros::get-name) "marker"))
+(defparameter *marker-id* (ros::get-param "masked_object_marker_id" 0))
+(ros::set-param "masked_object_marker_id" (inc *marker-id*))
 
 (unless *object-name*
   (error "you must specify object name")
@@ -24,7 +27,6 @@
 
 ;; init viewer
 (send *ri* :objects (list *scene*))
-;;(send *cam* :create-viewer)
 
 ;; assoc objects / spots
 (setq *door-front-spot* (send *scene* :spot "/eng2/7f/room73B2-door-front"))
@@ -33,25 +35,22 @@
 (setq *table* (send *scene* :object "room73b2-karimoku-table"))
 (send *table* :translate (float-vector -200 -200 0))
 
-(if (send *ri* :simulation-modep)
-    (progn
-      (send *robot* :transform (send *door-front-spot* :worldcoords))
-      (send *ri* :go-pos-unsafe 0 0 180))
-    (send *ri* :update-robot-state))
-
 (defun create-mask-image (objs)
+  (send *ri* :update-robot-state)
   (send *pr2* :reset-coords)
   (let ((cds (send *ri* :state :worldcoords)))
     (while (null cds)
            (setq cds (send *ri* :state :worldcoords)))
     (send *pr2* :transform cds :world))
   (send *pr2* :angle-vector (send *ri* :state :potentio-vector))
+  (ros::ros-info "[~A] robot pose: ~A, joints: ~A"
+                 (ros::get-name) (send *pr2* :worldcoords) (send *ri* :state :potentio-vector))
   (send *cam* :draw-objects objs)
   (send (send *cam* :get-image) :monochromize))
 
 (defun publish-mask-image ()
-  (let* ((mask (create-mask-image (list
-                                   (send *scene* :object *object-name*))))
+  (let* ((obj (send *scene* :object *object-name*))
+         (mask (create-mask-image (list obj)))
          (msg (ros::image->sensor_msgs/Image mask
                                             :seq (inc *mask-image-seq*)
                                             :frame_id *mask-image-frame-id*)))
@@ -59,10 +58,23 @@
       (ros::advertise *mask-image-topic* sensor_msgs::Image 5)
       (unix:sleep 1))
     (ros::publish *mask-image-topic* msg)
+    (when *publish-marker-p*
+      (unless (ros::get-topic-publisher *marker-topic*)
+        (ros::advertise *marker-topic* visualization_msgs::Marker 5)
+        (unix:sleep 1))
+      (ros::publish *marker-topic*
+                    (object->marker-msg obj
+                                        (instance std_msgs::header :init
+                                                  :stamp (ros::time-now)
+                                                  :frame_id "world")
+                                        :ns "masked_objects"
+                                        :lifetime 300
+                                        :id *marker-id*)))
     t))
 
 #|
-(defun publish-fridge-mask-image ()
+;; for debug
+(defun publish-mask-image ()
   (let* ((mask (create-mask-image (list *fridge*)))
          (msg (ros::image->sensor_msgs/Image mask
                                             :seq (inc *mask-image-seq*)
@@ -71,9 +83,15 @@
       (ros::advertise *mask-image-topic* sensor_msgs::Image 5)
       (unix:sleep 1))
     (ros::publish *mask-image-topic* msg)
+    (objects (list *pr2* *fridge*))
     t))
 |#
 
+(send *ri* :update-robot-state)
+(ros::ros-info "[~A] publishing mask of object: ~A -> ~A"
+               (ros::get-name) *object-name* *mask-image-topic*)
 (while (ros::ok)
-  (publish-mask-image)
-  (send *ri* :spin-once))
+  (ros::spin-once)
+  (send *ri* :spin-once)
+  (publish-mask-image))
+(exit 0)

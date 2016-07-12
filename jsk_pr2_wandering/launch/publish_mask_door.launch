@@ -1,4 +1,8 @@
 <launch>
+  <arg name="gui" default="true" />
+  <arg name="publish_marker" default="true" />
+  <arg name="marker_topic" default="masked_objects_marker" />
+
   <include file="$(find pr2_machine)/$(env ROBOT).machine" />
 
   <include file="$(find jsk_pr2_wandering)/launch/publish_mask.launch">
@@ -12,5 +16,7 @@
     <arg name="mask_topic" value="mask_door_right" />
     <arg name="machine" value="c2" />
     <arg name="apply" value="true" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="publish_marker" value="$(arg publish_marker)" />
   </include>
 </launch>

@@ -6,25 +6,31 @@
   <arg name="camera_frame" default="/head_mount_kinect_rgb_optical_frame" />
   <arg name="apply" default="false" />
   <arg name="gui" default="false" />
+  <arg name="publish_marker" default="false" />
+  <arg name="marker_topic" default="masked_objects_marker" />
   <arg name="machine" default="localhost" />
 
+  <node name="publish_$(arg mask_topic)" pkg="roseus" type="roseus"
+        args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image.l"
+        if="$(arg gui)"
+        output="screen" machine="$(arg machine)">
+    <param name="object_name" value="$(arg object_name)" />
+    <param name="publish_marker" value="$(arg publish_marker" />
+    <remap from="~output" to="$(arg camera_ns)/$(arg mask_topic)" />
+    <remap from="~marker" to="$(arg camera_ns)/$(arg marker_topic)" />
+  </node>
+  <node name="publish_$(arg mask_topic)" pkg="roseus" type="roseus"
+        args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image.l"
+        launch-prefix="xvfb-run -a -s &quot;-screen 0 800x600x24&quot;"
+        unless="$(arg gui)"
+        output="screen" machine="$(arg machine)">
+    <param name="object_name" value="$(arg object_name)" />
+    <param name="publish_marker" value="$(arg publish_marker" />
+    <remap from="~output" to="$(arg camera_ns)/$(arg mask_topic)" />
+    <remap from="~marker" to="$(arg camera_ns)/$(arg marker_topic)" />
+  </node>
+
   <group ns="$(arg camera_ns)">
-    <node name="publish_$(arg mask_topic)" pkg="roseus" type="roseus"
-          args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image.l"
-          launch-prefix="xvfb-run -a -s &quot;-screen 0 800x600x24&quot;"
-          if="$(arg gui)"
-          output="screen" machine="$(arg machine)">
-      <param name="object_name" value="$(arg object_name)" />
-      <remap from="~output" to="$(arg mask_topic)" />
-    </node>
-    <node name="publish_$(arg mask_topic)" pkg="roseus" type="roseus"
-          args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image.l"
-          launch-prefix="xvfb-run -a -s &quot;-screen 0 800x600x24&quot;"
-          unless="$(arg gui)"
-          output="screen" machine="$(arg machine)">
-      <param name="object_name" value="$(arg object_name)" />
-      <remap from="~output" to="$(arg mask_topic)" />
-    </node>
     <node name="apply_$(arg mask_topic)" pkg="jsk_perception" type="apply_mask_image"
           machine="$(arg machine)" if="$(arg apply)">
       <remap from="~input" to="$(arg camera_topic)" />
