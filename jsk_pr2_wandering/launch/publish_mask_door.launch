@@ -1,0 +1,16 @@
+<launch>
+  <include file="$(find pr2_machine)/$(env ROBOT).machine" />
+
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask.launch">
+    <arg name="object_name" value="room73b2-door-left" />
+    <arg name="mask_topic" value="mask_door_left" />
+    <arg name="machine" value="c2" />
+    <arg name="apply" value="true" />
+  </include>
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask.launch">
+    <arg name="object_name" value="room73b2-door-right" />
+    <arg name="mask_topic" value="mask_door_right" />
+    <arg name="machine" value="c2" />
+    <arg name="apply" value="true" />
+  </include>
+</launch>

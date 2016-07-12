@@ -1,0 +1,6 @@
+<launch>
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask_fridge.launch" />
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask_table.launch" />
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask_door.launch" />
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask_drawer.launch" />
+</launch>

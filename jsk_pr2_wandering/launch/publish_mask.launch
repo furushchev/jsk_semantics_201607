@@ -1,0 +1,25 @@
+<launch>
+  <arg name="object_name" />
+  <arg name="mask_topic" default="masked_image" />
+  <arg name="camera_ns" default="/kinect_head_c2/rgb" />
+  <arg name="camera_topic" default="image_rect_color" />
+  <arg name="camera_frame" default="/head_mount_kinect_rgb_optical_frame" />
+  <arg name="apply" default="false" />
+  <arg name="machine" default="localhost" />
+
+  <group ns="$(arg camera_ns)">
+    <node name="publish_$(arg mask_topic)" pkg="roseus" type="roseus"
+          args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image.l"
+          output="screen" machine="$(arg machine)">
+      <param name="object_name" value="$(arg object_name)" />
+      <remap from="~output" to="$(arg mask_topic)" />
+    </node>
+    <node name="apply_$(arg mask_topic)" pkg="jsk_perception" type="apply_mask_image"
+          machine="$(arg machine)" if="$(arg apply)">
+      <remap from="~input" to="$(arg camera_topic)" />
+      <remap from="~input/mask" to="$(arg mask_topic)" />
+      <param name="approximate_sync" value="true" />
+    </node>
+  </group>
+</launch>
+

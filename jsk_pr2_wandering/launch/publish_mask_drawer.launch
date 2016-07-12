@@ -1,0 +1,10 @@
+<launch>
+  <include file="$(find pr2_machine)/$(env ROBOT).machine" />
+
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask.launch">
+    <arg name="object_name" value="room73b2-hrp2-parts-drawer" />
+    <arg name="mask_topic" value="mask_drawer" />
+    <arg name="machine" value="c2" />
+    <arg name="apply" value="true" />
+  </include>
+</launch>
