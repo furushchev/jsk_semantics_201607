@@ -24,7 +24,7 @@
 
 ;; init viewer
 (send *ri* :objects (list *scene*))
-(send *cam* :create-viewer)
+;;(send *cam* :create-viewer)
 
 ;; assoc objects / spots
 (setq *door-front-spot* (send *scene* :spot "/eng2/7f/room73B2-door-front"))
@@ -60,6 +60,7 @@
       (unix:sleep 1))
     (ros::publish *mask-image-topic* msg)
     t))
+
 #|
 (defun publish-fridge-mask-image ()
   (let* ((mask (create-mask-image (list *fridge*)))
@@ -76,5 +77,3 @@
 (while (ros::ok)
   (publish-mask-image)
   (send *ri* :spin-once))
-
-(provide :hoge) ;; end of hoge.l
