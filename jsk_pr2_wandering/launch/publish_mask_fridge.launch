@@ -1,5 +1,5 @@
 <launch>
-  <arg name="gui" default="true" />
+  <arg name="gui" default="false" />
   <arg name="publish_marker" default="true" />
   <arg name="marker_topic" default="masked_objects_marker" />
 

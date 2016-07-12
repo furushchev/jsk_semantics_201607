@@ -46,7 +46,7 @@
   (ros::ros-info "[~A] robot pose: ~A, joints: ~A"
                  (ros::get-name) (send *pr2* :worldcoords) (send *ri* :state :potentio-vector))
   (send *cam* :draw-objects objs)
-  (send (send *cam* :get-image) :monochromize))
+  (send (send *cam* :image-viewer :viewsurface :getglimage :offscreen t) :monochromize))
 
 (defun publish-mask-image ()
   (let* ((obj (send *scene* :object *object-name*))
