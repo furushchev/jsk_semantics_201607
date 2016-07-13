@@ -3,8 +3,25 @@
 
 (ros::roseus "publish_mask_image")
 
+(load "irteus/irtgl.l")
 (require :pr2-interface "package://pr2eus/pr2-interface.l")
 (require :eng2-scene "package://jsk_maps/src/eng2-scene.l")
+
+(defparameter *object-name* (ros::get-param "~object_name"))
+(defparameter *mask-image-topic* (format nil "~A/~A" (ros::get-name) "output"))
+(defparameter *mask-image-frame-id* (ros::get-param "~frame_id" "/head_mount_kinect_rgb_optical_frame"))
+(defparameter *publish-marker-p* (ros::get-param "~publish_marker" nil))
+(defparameter *marker-topic* (format nil "~A/~A" (ros::get-name) "marker"))
+(unless *object-name*
+  (error "you must specify object name")
+  (exit 1))
+
+(unless (ros::get-topic-publisher *mask-image-topic*)
+  (ros::advertise *mask-image-topic* sensor_msgs::Image 5)
+  (unix:sleep 1))
+(unless (ros::get-topic-publisher *marker-topic*)
+  (ros::advertise *marker-topic* visualization_msgs::Marker 5)
+  (unix:sleep 1))
 
 (pr2-init)
 
@@ -12,18 +29,8 @@
 
 (defparameter *scene* (make-eng2-scene))
 (defparameter *cam* (send *pr2* :kinect_head-rgb))
-
-(defparameter *object-name* (ros::get-param "~object_name"))
-(defparameter *mask-image-topic* (format nil "~A/~A" (ros::get-name) "output"))
-(defparameter *mask-image-frame-id* (ros::get-param "~frame_id" "/head_mount_kinect_rgb_optical_frame"))
-(defparameter *publish-marker-p* (ros::get-param "~publish_marker" nil))
-(defparameter *marker-topic* (format nil "~A/~A" (ros::get-name) "marker"))
 (defparameter *marker-id* (ros::get-param "masked_object_marker_id" 0))
 (ros::set-param "masked_object_marker_id" (inc *marker-id*))
-
-(unless *object-name*
-  (error "you must specify object name")
-  (exit 1))
 
 ;; init viewer
 (send *ri* :objects (list *scene*))
@@ -51,17 +58,13 @@
 (defun publish-mask-image ()
   (let* ((obj (send *scene* :object *object-name*))
          (mask (create-mask-image (list obj)))
-         (msg (ros::image->sensor_msgs/Image mask
-                                            :seq (inc *mask-image-seq*)
-                                            :frame_id *mask-image-frame-id*)))
-    (unless (ros::get-topic-publisher *mask-image-topic*)
-      (ros::advertise *mask-image-topic* sensor_msgs::Image 5)
-      (unix:sleep 1))
-    (ros::publish *mask-image-topic* msg)
+         msg)
+    (when (> (send mask :average-pixel) 0.1)
+      (setq msg (ros::image->sensor_msgs/Image mask
+                                               :seq (inc *mask-image-seq*)
+                                               :frame_id *mask-image-frame-id*))
+      (ros::publish *mask-image-topic* msg))
     (when *publish-marker-p*
-      (unless (ros::get-topic-publisher *marker-topic*)
-        (ros::advertise *marker-topic* visualization_msgs::Marker 5)
-        (unix:sleep 1))
       (ros::publish *marker-topic*
                     (object->marker-msg obj
                                         (instance std_msgs::header :init
@@ -87,11 +90,11 @@
     t))
 |#
 
-(send *ri* :update-robot-state)
+;;(send *ri* :update-robot-state)
 (ros::ros-info "[~A] publishing mask of object: ~A -> ~A"
                (ros::get-name) *object-name* *mask-image-topic*)
 (while (ros::ok)
-  (ros::spin-once)
-  (send *ri* :spin-once)
+;;  (ros::spin-once)
+;;  (send *ri* :spin-once)
   (publish-mask-image))
 (exit 0)
