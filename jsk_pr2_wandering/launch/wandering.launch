@@ -1,0 +1,14 @@
+<launch>
+  <arg name="enable_wander" default="true" />
+  <arg name="enable_mask" default="true" />
+  <arg name="enable_logging" default="true" />
+
+  <node name="wandering" pkg="roseus" type="roseus"
+        args="$(find jsk_pr2_wandering)/euslisp/wander.l"
+        output="screen" if="$(arg enable_wander)"/>
+
+  <include file="$(find jsk_pr2_wandering)/launch/publish_mask_all.launch"
+           if="$(arg enable_mask)" />
+  <include file="$(find jsk_pr2_wandering)/launch/record_data.launch"
+           if="$(arg enable_logging)" />
+</launch>
