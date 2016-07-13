@@ -2,25 +2,35 @@
   <arg name="gui" default="false" />
   <arg name="publish_marker" default="true" />
   <arg name="marker_topic" default="masked_objects_marker" />
+  <arg name="machine" default="c1" />
+  <arg name="apply" default="true" />
 
   <include file="$(find jsk_pr2_wandering)/launch/publish_mask_fridge.launch">
     <arg name="gui" value="$(arg gui)" />
     <arg name="publish_marker" value="$(arg publish_marker)" />
     <arg name="marker_topic" value="$(arg marker_topic)" />
+    <arg name="machine" value="$(arg machine)" />
+    <arg name="apply" value="$(arg apply)" />
   </include>
   <include file="$(find jsk_pr2_wandering)/launch/publish_mask_table.launch" >
     <arg name="gui" value="$(arg gui)" />
     <arg name="publish_marker" value="$(arg publish_marker)" />
     <arg name="marker_topic" value="$(arg marker_topic)" />
+    <arg name="machine" value="$(arg machine)" />
+    <arg name="apply" value="$(arg apply)" />
   </include>
   <include file="$(find jsk_pr2_wandering)/launch/publish_mask_door.launch" >
     <arg name="gui" value="$(arg gui)" />
     <arg name="publish_marker" value="$(arg publish_marker)" />
     <arg name="marker_topic" value="$(arg marker_topic)" />
+    <arg name="machine" value="$(arg machine)" />
+    <arg name="apply" value="$(arg apply)" />
   </include>
   <include file="$(find jsk_pr2_wandering)/launch/publish_mask_drawer.launch" >
     <arg name="gui" value="$(arg gui)" />
     <arg name="publish_marker" value="$(arg publish_marker)" />
     <arg name="marker_topic" value="$(arg marker_topic)" />
+    <arg name="machine" value="$(arg machine)" />
+    <arg name="apply" value="$(arg apply)" />
   </include>
 </launch>

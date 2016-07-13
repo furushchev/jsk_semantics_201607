@@ -2,20 +2,24 @@
   <arg name="gui" default="false" />
   <arg name="publish_marker" default="true" />
   <arg name="marker_topic" default="masked_objects_marker" />
+  <arg name="machine" default="c1" />
+  <arg name="apply" default="true" />
 
   <include file="$(find pr2_machine)/$(env ROBOT).machine" />
 
   <include file="$(find jsk_pr2_wandering)/launch/publish_mask.launch">
     <arg name="object_name" value="room73b2-door-left" />
     <arg name="mask_topic" value="mask_door_left" />
-    <arg name="machine" value="c2" />
-    <arg name="apply" value="true" />
+    <arg name="machine" value="$(arg machine)" />
+    <arg name="apply" value="$(arg apply)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="publish_marker" value="$(arg publish_marker)" />
   </include>
   <include file="$(find jsk_pr2_wandering)/launch/publish_mask.launch">
     <arg name="object_name" value="room73b2-door-right" />
     <arg name="mask_topic" value="mask_door_right" />
-    <arg name="machine" value="c2" />
-    <arg name="apply" value="true" />
+    <arg name="machine" value="$(arg machine)" />
+    <arg name="apply" value="$(arg apply)" />
     <arg name="gui" value="$(arg gui)" />
     <arg name="publish_marker" value="$(arg publish_marker)" />
   </include>
