@@ -40,7 +40,9 @@
 (setq *fridge* (send *scene* :object "room73b2-hitachi-fiesta-refrigerator"))
 (send *fridge* :translate (float-vector 0 500 0))
 (setq *table* (send *scene* :object "room73b2-karimoku-table"))
-(send *table* :translate (float-vector -200 -200 0))
+(send *table* :translate (float-vector -400 -150 0))
+(setq *drawer* (send *scene* :object "room73b2-hrp2-parts-drawer"))
+(send *drawer* :translate (float-vector 0 200 0))
 
 (defun create-mask-image (objs)
   (send *ri* :update-robot-state)
