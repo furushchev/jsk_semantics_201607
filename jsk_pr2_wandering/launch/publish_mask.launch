@@ -36,6 +36,7 @@
       <remap from="~input" to="$(arg camera_topic)" />
       <remap from="~input/mask" to="$(arg mask_topic)" />
       <param name="approximate_sync" value="true" />
+      <param name="queue_size" value="30" />
     </node>
   </group>
 </launch>
