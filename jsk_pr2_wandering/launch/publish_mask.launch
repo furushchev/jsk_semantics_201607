@@ -15,7 +15,7 @@
         if="$(arg gui)"
         output="screen" machine="$(arg machine)">
     <param name="object_name" value="$(arg object_name)" />
-    <param name="publish_marker" value="$(arg publish_marker" />
+    <param name="publish_marker" value="$(arg publish_marker)" />
     <remap from="~output" to="$(arg camera_ns)/$(arg mask_topic)" />
     <remap from="~marker" to="$(arg camera_ns)/$(arg marker_topic)" />
   </node>
@@ -25,7 +25,7 @@
         unless="$(arg gui)"
         output="screen" machine="$(arg machine)">
     <param name="object_name" value="$(arg object_name)" />
-    <param name="publish_marker" value="$(arg publish_marker" />
+    <param name="publish_marker" value="$(arg publish_marker)" />
     <remap from="~output" to="$(arg camera_ns)/$(arg mask_topic)" />
     <remap from="~marker" to="$(arg camera_ns)/$(arg marker_topic)" />
   </node>
