@@ -3,7 +3,6 @@
 
 (ros::roseus "publish_mask_image")
 
-(load "irteus/irtgl.l")
 (require :pr2-interface "package://pr2eus/pr2-interface.l")
 (require :eng2-scene "package://jsk_maps/src/eng2-scene.l")
 
