@@ -1,0 +1,36 @@
+<launch>
+  <node name="data_collection_server" pkg="jsk_data" type="data_collection_server.py">
+    <rosparam>
+    save_dir: /removable/jsk_pr2_wandering/
+    topics:
+    - name: /kinect_head_c2/rgb/image_rect_color
+      msg_class: sensor_msgs/Image
+      fname: image.png
+      savetype: ColorImage
+    - name: /kinect_head_c2/depth/image_raw
+      msg_class: sensor_msgs/Image
+      fname: depth.pkl
+      savetype: DepthImage
+    - name: /kinect_head/rgb/mask_fridge
+      msg_class: sensor_msgs/Image
+      fname: mask_fridge.png
+      savetype: ColorImage
+    - name: /kinect_head_c2/rgb/mask_drawer
+      msg_class: sensor_msgs/Image
+      fname: mask_drawer.png
+      savetype: ColorImage
+    - name: /kinect_head_c2/rgb/mask_table
+      msg_class: sensor_msgs/Image
+      fname: mask_table.png
+      savetype: ColorImage
+    - name: /kinect_head_c2/rgb/mask_door_left
+      msg_class: sensor_msgs/Image
+      fname: mask_door_left.png
+      savetype: ColorImage
+    - name: /kinect_head_c2/rgb/mask_door_right
+      msg_class: sensor_msgs/Image
+      fname: mask_door_right.png
+      savetype: ColorImage
+  </rosparam>
+  </node>
+</launch>
