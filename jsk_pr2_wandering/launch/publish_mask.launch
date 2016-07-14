@@ -11,7 +11,7 @@
   <arg name="machine" default="localhost" />
 
   <node name="publish_$(arg mask_topic)" pkg="roseus" type="roseus"
-        args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image.l"
+        args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image-main.l"
         if="$(arg gui)"
         output="screen" machine="$(arg machine)">
     <param name="object_name" value="$(arg object_name)" />
@@ -20,7 +20,7 @@
     <remap from="~marker" to="$(arg camera_ns)/$(arg marker_topic)" />
   </node>
   <node name="publish_$(arg mask_topic)" pkg="roseus" type="roseus"
-        args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image.l"
+        args="$(find jsk_pr2_wandering)/euslisp/publish-mask-image-main.l"
         launch-prefix="xvfb-run -a -s &quot;-screen 0 800x600x24&quot;"
         unless="$(arg gui)"
         output="screen" machine="$(arg machine)">

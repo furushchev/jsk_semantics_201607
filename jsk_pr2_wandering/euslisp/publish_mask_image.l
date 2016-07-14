@@ -1,8 +1,6 @@
 ;; publish-mask-image.l
 ;; Author: Yuki Furuta <furushchev@jsk.imi.i.u-tokyo.ac.jp>
 
-(ros::roseus "publish_mask_image")
-
 (require :pr2-interface "package://pr2eus/pr2-interface.l")
 (require :eng2-scene "package://jsk_maps/src/eng2-scene.l")
 
@@ -30,6 +28,11 @@
 (defparameter *cam* (send *pr2* :kinect_head-rgb))
 (defparameter *marker-id* (ros::get-param "masked_object_marker_id" 0))
 (ros::set-param "masked_object_marker_id" (inc *marker-id*))
+
+(when (and (boundp '*compile-message*) *compile-message*)
+  (setq ros::*compile-message* t)
+  (ros::load-ros-manifest "sensor_msgs")
+  (ros::load-ros-manifest "visualization_msgs"))
 
 ;; init viewer
 (send *ri* :objects (list *scene*))
@@ -90,12 +93,3 @@
     (objects (list *pr2* *fridge*))
     t))
 |#
-
-;;(send *ri* :update-robot-state)
-(ros::ros-info "[~A] publishing mask of object: ~A -> ~A"
-               (ros::get-name) *object-name* *mask-image-topic*)
-(while (ros::ok)
-;;  (ros::spin-once)
-;;  (send *ri* :spin-once)
-  (publish-mask-image))
-(exit 0)
