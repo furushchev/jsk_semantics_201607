@@ -95,7 +95,7 @@
                (* i step-angle)))
       (send *ri* :angle-vector (send *pr2* :angle-vector) 1000)
       (send *ri* :wait-interpolation :timeout 1)
-      (unix:sleep 10))))
+      (unix:sleep 3))))
 
 (defun wander ()
   (let ((rand-x (random 1.0))

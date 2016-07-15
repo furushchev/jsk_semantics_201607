@@ -14,10 +14,10 @@
   (exit 1))
 
 (unless (ros::get-topic-publisher *mask-image-topic*)
-  (ros::advertise *mask-image-topic* sensor_msgs::Image 5)
+  (ros::advertise *mask-image-topic* sensor_msgs::Image 1)
   (unix:sleep 1))
 (unless (ros::get-topic-publisher *marker-topic*)
-  (ros::advertise *marker-topic* visualization_msgs::Marker 5)
+  (ros::advertise *marker-topic* visualization_msgs::Marker 1)
   (unix:sleep 1))
 
 (pr2-init)
