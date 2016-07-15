@@ -56,7 +56,7 @@
            (setq cds (send *ri* :state :worldcoords)))
     (send *pr2* :transform cds :world))
   (send *pr2* :angle-vector (send *ri* :state :potentio-vector))
-  (ros::ros-info "[~A] robot pose: ~A, joints: ~A"
+  (ros::ros-debug "[~A] robot pose: ~A, joints: ~A"
                  (ros::get-name) (send *pr2* :worldcoords) (send *ri* :state :potentio-vector))
   (send *cam* :draw-objects objs)
   (let ((mimg (instance image::grayscale-image :init (send *cam* :width) (send *cam* :height) *mask-buffer*)))
