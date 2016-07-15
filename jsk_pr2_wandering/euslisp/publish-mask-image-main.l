@@ -4,7 +4,7 @@
 (ros::roseus "publish_mask_image")
 
 (setq *compile-message* t)
-(require :publish-mask-image "publish-mask-image")
+(require :publish-mask-image "publish_mask_image")
 
 (ros::ros-info "[~A] publishing mask of object: ~A -> ~A"
                (ros::get-name) *object-name* *mask-image-topic*)

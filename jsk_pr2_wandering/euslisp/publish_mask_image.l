@@ -26,6 +26,8 @@
 
 (defparameter *scene* (make-eng2-scene))
 (defparameter *cam* (send *pr2* :kinect_head-rgb))
+(defparameter *image-buffer* (make-string (* (send *cam* :width) (send *cam* :height) 3)))
+(defparameter *mask-buffer* (make-string (* (send *cam* :width) (send *cam* :height))))
 (defparameter *marker-id* (ros::get-param "masked_object_marker_id" 0))
 (ros::set-param "masked_object_marker_id" (inc *marker-id*))
 
@@ -57,7 +59,10 @@
   (ros::ros-info "[~A] robot pose: ~A, joints: ~A"
                  (ros::get-name) (send *pr2* :worldcoords) (send *ri* :state :potentio-vector))
   (send *cam* :draw-objects objs)
-  (send (send *cam* :image-viewer :viewsurface :getglimage :offscreen t) :monochromize))
+  (let ((mimg (instance image::grayscale-image :init (send *cam* :width) (send *cam* :height) *mask-buffer*)))
+    (send (send *cam* :image-viewer :viewsurface :getglimage
+                :imagebuf *image-buffer*
+                :offscreen t) :monochromize mimg)))
 
 (defun publish-mask-image ()
   (let* ((obj (send *scene* :object *object-name*))
