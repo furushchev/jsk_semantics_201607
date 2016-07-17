@@ -1,0 +1,111 @@
+<launch>
+  <arg name="machine" default="c1" />
+
+  <arg name="launch_manager" default="true" />
+  <arg name="relay_input" default="true" />
+  <arg name="publish_tf" default="true" />
+  <arg name="publish_marker" default="true" />
+  <arg name="decompose_indices" default="true" />
+  <arg name="apply_mask" default="true" />
+  <arg name="approximate_sync" default="true" />
+  <arg name="clip_masked_image" default="true" />
+  <arg name="sync_queue_size" default="30" />
+
+  <arg name="manager" default="publish_occluded_mask_nodelet_manager" />
+  <arg name="camera_ns" default="camera" />
+  <arg name="input_cloud" default="depth_registered/points" />
+  <arg name="input_image" default="rgb/image_rect_color" />
+  <arg name="input_camera_info" default="rgb/camera_info" />
+
+  <arg name="test_mode" default="false" />
+
+  <!-- machine settings -->
+  <include file="$(find pr2_machine)/$(env ROBOT).machine" />
+
+  <!-- models -> bounding box array -->
+  <node name="eus_model_to_bounding_box"
+        pkg="jsk_pr2_wandering" type="publish-object-bounding-box-main.l"
+        output="screen" machine="$(arg machine)"
+        unless="$(arg test_mode)">
+    <rosparam subst_value="true">
+      publish_marker: $(arg publish_marker)
+      object_names:
+      - room73b2-hitachi-fiesta-refrigerator
+      - room73b2-karimoku-table
+      - room73b2-hrp2-parts-drawer
+      - room73b2-door-left
+      - room73b2-door-right
+    </rosparam>
+  </node>
+
+  <!-- for debugging -->
+  <node name="eus_model_to_bounding_box"
+        pkg="roseus" type="roseus"
+        args="$(find jsk_pr2_wandering)/euslisp/test-publish-bounding-box.l"
+        machine="$(arg machine)"
+        if="$(arg test_mode)"/>
+
+  <group ns="$(arg camera_ns)">
+    <!-- nodelet manager -->
+    <node name="$(arg manager)" pkg="nodelet" type="nodelet"
+          args="manager" machine="$(arg machine)" output="screen"
+          if="$(arg launch_manager)" />
+    <node name="input_relay" pkg="nodelet" type="nodelet"
+          args="load jsk_topic_tools/Relay $(arg manager)"
+          output="screen" machine="$(arg machine)"
+          if="$(arg relay_input)">
+      <remap from="~input" to="$(arg input_cloud)" />
+    </node>
+    <!-- bounding box + point cloud -> indices -->
+    <node name="bounding_box_filter" pkg="nodelet" type="nodelet"
+          args="load jsk_pcl/AttentionClipper $(arg manager)"
+          output="screen" machine="$(arg machine)">
+      <remap from="~input" to="$(arg input_camera_info)" />
+      <remap from="~input/points" to="input_relay/output" />
+      <remap from="~input/box_array" to="/eus_model_to_bounding_box/output" />
+      <rosparam>
+        use_multiple_attention: true
+      </rosparam>
+    </node>
+
+    <!-- indices + point cloud -> filtered clouds -->
+    <node name="filtered_point_decomposer" pkg="nodelet" type="nodelet"
+          args="load jsk_pcl/ClusterPointIndicesDecomposer $(arg manager)"
+          output="screen" machine="$(arg machine)"
+          if="$(arg decompose_indices)">
+      <remap from="~input" to="input_relay/output" />
+      <remap from="~target" to="bounding_box_filter/output/cluster_point_indices" />
+      <rosparam>
+        approximate_sync: true
+        publish_clouds: true
+        publish_tf: true
+      </rosparam>
+    </node>
+
+    <!-- indices -> mask image -->
+    <node name="filtered_indices_to_mask" pkg="nodelet" type="nodelet"
+          args="load jsk_pcl/PointIndicesToMaskImage $(arg manager)"
+          output="screen" machine="$(arg machine)">
+      <remap from="~input" to="bounding_box_filter/output/point_indices"/>
+      <remap from="~input/image" to="$(arg input_image)" />
+      <rosparam subst_value="true">
+        approximate_sync: $(arg approximate_sync)
+        queue_size: $(arg sync_queue_size)
+      </rosparam>
+    </node>
+
+    <!-- mask + camera -> masked image -->
+    <node name="masked_objects" pkg="nodelet" type="nodelet"
+          args="load jsk_perception/ApplyMaskImage $(arg manager)"
+          output="screen" machine="$(arg machine)"
+          if="$(arg apply_mask)">
+      <remap from="~input" to="$(arg input_image)" />
+      <remap from="~input/mask" to="filtered_indices_to_mask/output" />
+      <rosparam subst_value="true">
+        approximate_sync: $(arg approximate_sync)
+        clip: $(arg clip_masked_image)
+        queue_size: $(arg sync_queue_size)
+      </rosparam>
+    </node>
+  </group>
+</launch>

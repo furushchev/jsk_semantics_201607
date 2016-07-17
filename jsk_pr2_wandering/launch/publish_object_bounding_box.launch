@@ -1,6 +1,5 @@
 <launch>
   <arg name="object_name" doc="object name in eus scene"/>
-  <arg name="object_short_name" doc="use for node/topic name"/>
   <arg name="machine" default="localhost" />
 
   <node name="publish_$(arg object_short_name)_bbox" pkg="jsk_pr2_wandering" type="publish-object-bounding-box-main.l"
