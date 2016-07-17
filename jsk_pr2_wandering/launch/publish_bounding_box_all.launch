@@ -1,0 +1,16 @@
+<launch>
+  <arg name="machine" default="c1" />
+
+  <include file="$(find jsk_pr2_wandering)/launch/publish_bounding_box_fridge.launch">
+    <arg name="machine" value="$(arg machine)" />
+  </include>
+  <include file="$(find jsk_pr2_wandering)/launch/publish_bounding_box_table.launch">
+    <arg name="machine" value="$(arg machine)" />
+  </include>
+  <include file="$(find jsk_pr2_wandering)/launch/publish_bounding_box_door.launch">
+    <arg name="machine" value="$(arg machine)" />
+  </include>
+  <include file="$(find jsk_pr2_wandering)/launch/publish_bounding_box_drawer.launch">
+    <arg name="machine" value="$(arg machine)" />
+  </include>
+</launch>

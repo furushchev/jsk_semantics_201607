@@ -2,7 +2,7 @@
 ;; Author: Yuki Furuta <furushchev@jsk.imi.i.u-tokyo.ac.jp>
 
 (require :pr2-interface "package://pr2eus/pr2-interface.l")
-(require :eng2-scene "package://jsk_maps/src/eng2-scene.l")
+(require :scene "package://jsk_pr2_wandering/euslisp/scene")
 
 (defparameter *object-name* (ros::get-param "~object_name"))
 (defparameter *mask-image-topic* (format nil "~A/~A" (ros::get-name) "output"))
@@ -16,7 +16,7 @@
 (unless (ros::get-topic-publisher *mask-image-topic*)
   (ros::advertise *mask-image-topic* sensor_msgs::Image 1)
   (unix:sleep 1))
-(unless (ros::get-topic-publisher *marker-topic*)
+(when (and *publish-marker-p* (null (ros::get-topic-publisher *marker-topic*)))
   (ros::advertise *marker-topic* visualization_msgs::Marker 1)
   (unix:sleep 1))
 
@@ -24,29 +24,16 @@
 
 (defparameter *mask-image-seq* 0)
 
-(defparameter *scene* (make-eng2-scene))
 (defparameter *cam* (send *pr2* :kinect_head-rgb))
 (defparameter *image-buffer* (make-string (* (send *cam* :width) (send *cam* :height) 3)))
 (defparameter *mask-buffer* (make-string (* (send *cam* :width) (send *cam* :height))))
 (defparameter *marker-id* (ros::get-param "masked_object_marker_id" 0))
 (ros::set-param "masked_object_marker_id" (inc *marker-id*))
 
-(when (and (boundp '*compile-message*) *compile-message*)
-  (setq ros::*compile-message* t)
-  (ros::load-ros-manifest "sensor_msgs")
-  (ros::load-ros-manifest "visualization_msgs"))
+(load-scene)
 
 ;; init viewer
 (send *ri* :objects (list *scene*))
-
-;; assoc objects / spots
-(setq *door-front-spot* (send *scene* :spot "/eng2/7f/room73B2-door-front"))
-(setq *fridge* (send *scene* :object "room73b2-hitachi-fiesta-refrigerator"))
-(send *fridge* :translate (float-vector 0 500 0))
-(setq *table* (send *scene* :object "room73b2-karimoku-table"))
-(send *table* :translate (float-vector -400 -150 0))
-(setq *drawer* (send *scene* :object "room73b2-hrp2-parts-drawer"))
-(send *drawer* :translate (float-vector 0 200 0))
 
 (defun create-mask-image (objs)
   (send *pr2* :reset-coords)
