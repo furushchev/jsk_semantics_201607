@@ -49,29 +49,34 @@
 (send *drawer* :translate (float-vector 0 200 0))
 
 (defun create-mask-image (objs)
-  (send *ri* :update-robot-state)
   (send *pr2* :reset-coords)
-  (let ((cds (send *ri* :state :worldcoords)))
+  (let* ((cds (send *ri* :state :worldcoords))
+         (base-frame-id (pr2-interface-base-frame-id *ri*))
+         (stamp (send *tfl* :get-latest-common-time "/world" base-frame-id))
+         (mimg (instance image::grayscale-image :init (send *cam* :width) (send *cam* :height) *mask-buffer*))
+         mask)
     (while (null cds)
            (setq cds (send *ri* :state :worldcoords)))
-    (send *pr2* :transform cds :world))
-  (send *pr2* :angle-vector (send *ri* :state :potentio-vector))
-  (ros::ros-debug "[~A] robot pose: ~A, joints: ~A"
-                 (ros::get-name) (send *pr2* :worldcoords) (send *ri* :state :potentio-vector))
-  (send *cam* :draw-objects objs)
-  (let ((mimg (instance image::grayscale-image :init (send *cam* :width) (send *cam* :height) *mask-buffer*)))
-    (send (send *cam* :image-viewer :viewsurface :getglimage
-                :imagebuf *image-buffer*
-                :offscreen t) :monochromize mimg)))
+    (send *pr2* :transform cds :world)
+    (send *pr2* :angle-vector (send *ri* :state :potentio-vector))
+    (ros::ros-debug "[~A] robot pose: ~A, joints: ~A"
+                    (ros::get-name) (send *pr2* :worldcoords) (send *ri* :state :potentio-vector))
+    (send *cam* :draw-objects objs)
+    (setq mask
+          (send (send *cam* :image-viewer :viewsurface :getglimage
+                      :imagebuf *image-buffer*
+                      :offscreen t) :monochromize mimg))
+    (if (> (send mask :average-pixel) 0.1)
+        (ros::image->sensor_msgs/Image mask
+                                       :seq (inc *mask-image-seq*)
+                                       :stamp stamp
+                                       :frame_id *mask-image-frame-id*)
+      nil)))
 
 (defun publish-mask-image ()
   (let* ((obj (send *scene* :object *object-name*))
-         (mask (create-mask-image (list obj)))
-         msg)
-    (when (> (send mask :average-pixel) 0.1)
-      (setq msg (ros::image->sensor_msgs/Image mask
-                                               :seq (inc *mask-image-seq*)
-                                               :frame_id *mask-image-frame-id*))
+         (msg (create-mask-image (list obj))))
+    (when msg
       (ros::publish *mask-image-topic* msg))
     (when *publish-marker-p*
       (ros::publish *marker-topic*
