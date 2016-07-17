@@ -1,0 +1,11 @@
+<launch>
+  <arg name="machine" value="c1" />
+
+  <include file="$(find pr2_machine)/$(env ROBOT).machine" />
+
+  <include file="$(find jsk_pr2_wandering)/launch/publish_object_bounding_box.launch">
+    <arg name="object_name" value="room73b2-karimoku-table" />
+    <arg name="object_short_name" value="table" />
+    <arg name="machine" value="$(arg machine)" />
+  </include>
+</launch>
