@@ -15,9 +15,9 @@ def main():
 
     download_data(
         pkg_name=PKG,
-        path='raw_data/data_2016-07-14-20-23-12.bag',
-        url='https://drive.google.com/uc?id=0B9P1L--7Wd2vMUVSdGt2YlJQV3c',
-        md5='aa3c55d18f5f26302c17a3081ca30c4c',
+        path='raw_data/data_2016-07-19-07-27-20.bag',
+        url='https://drive.google.com/uc?id=0B9P1L--7Wd2vMGZIUFdlbDBQRTA',
+        md5='fc03d13b34010f4610a74d02fc847e5a',
         quiet=quiet,
     )
 
