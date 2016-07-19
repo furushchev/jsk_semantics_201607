@@ -24,11 +24,9 @@ def main():
 
     for dir_ in sorted(os.listdir(dataset_dir)):
         img_file = osp.join(dataset_dir, dir_, 'image.png')
-        mask_file = osp.join(dataset_dir, dir_, 'mask.png')
+        label_file = osp.join(dataset_dir, dir_, 'label.png')
         img = imread(img_file)
-        mask = imread(mask_file, as_grey=True)
-        label = np.zeros(mask.shape, dtype=np.int32)
-        label[mask > 0.5] = 1
+        label = imread(label_file, as_grey=True)
         labelviz = label2rgb(label, img, bg_label=0)
         print(time.strftime('%Y-%m-%d-%H-%M-%S', time.gmtime(int(dir_) * 1e-9)))
         plt.imshow(labelviz)
