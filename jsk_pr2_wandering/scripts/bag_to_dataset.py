@@ -7,6 +7,7 @@ from __future__ import print_function
 import argparse
 import collections
 import cPickle as pickle
+import math
 import os
 import os.path as osp
 from Queue import deque
@@ -18,6 +19,21 @@ from skimage.io import imsave
 import cv_bridge
 from jsk_recognition_utils.color import labelcolormap
 import rosbag
+import rospkg
+import rospy
+
+
+def compute_pose_delta(pose1, pose2):
+    delta_x = pose1.position.x - pose2.position.x
+    delta_y = pose1.position.y - pose2.position.y
+    delta_z = pose1.position.z - pose2.position.z
+    delta_pos = np.linalg.norm([delta_x, delta_y, delta_z])
+    delta_x = pose1.orientation.x - pose2.orientation.x
+    delta_y = pose1.orientation.y - pose2.orientation.y
+    delta_z = pose1.orientation.z - pose2.orientation.z
+    delta_w = pose1.orientation.w - pose2.orientation.w
+    delta_ori = np.linalg.norm([delta_x, delta_y, delta_z, delta_w])
+    return delta_pos, delta_ori
 
 
 class BagToDataset(object):
@@ -39,9 +55,9 @@ class BagToDataset(object):
                 assert 'n_labels' in saving_topic
 
         queue = collections.defaultdict(deque)
-        queue_size = 10
-        camera_velocity = 0
-        topics = ['/joint_states'] + \
+        queue_size = 100
+        last_saved_pose = None
+        topics = ['/joint_states', '/tf_to_pose/output'] + \
                  [saving_topic['name'] for saving_topic in saving_topics]
         for topic, msg, stamp in self.bag.read_messages(topics=topics):
             # Cache to queue
@@ -59,27 +75,47 @@ class BagToDataset(object):
                 t_delta, t, msg = sorted(
                     (stamp - t, t, m) for t, m in queue[topic])[0]
                 latest_msgs[topic] = (t, msg)
+                # Consider time delta
+                if t_delta > rospy.Duration(0.1):
+                    break
                 # Consider camera moving to skip image with blur
-                if topic == 'joint_states':
-                    for i_joint in len(joint_state.name):
-                        joint_name = joint_state.name[i_joint]
-                        joint_vel = joint_state.velocify[i_joint]
+                if topic == '/joint_states':
+                    for i_joint in xrange(len(msg.name)):
+                        joint_name = msg.name[i_joint]
+                        joint_vel = msg.velocity[i_joint]
                         if ((joint_name in camera_moving_related_joints) and
-                                (abs(joint_vel) > 0.1)):
+                                (abs(joint_vel) > 1)):
+                            print('WARNING: Skipping because of camera moving'
+                                  '. stamp: {}, velocity: {}.'
+                                  .format(stamp, abs(joint_vel)))
                             camera_is_moving = True
                             break
                     else:
                         camera_is_moving = False
                     if camera_is_moving:
                         break
+                # Consider camera world pose to skip similar images
+                if ((topic == '/tf_to_pose/output') and
+                      (last_saved_pose is not None)):
+                    delta_pos, delta_ori = compute_pose_delta(
+                        last_saved_pose, msg.pose)
+                    if delta_pos < 0.01 and delta_ori < 0.01:
+                        print(
+                            'WARNING: Skipping because camera is not moved. '
+                            'stamp: {}, delta_pos: {}, delta_ori: {}.'
+                            .format(stamp, delta_pos, delta_ori)
+                        )
+                        break
             else:
                 stamp, _ = latest_msgs[target_topic]
                 save_dir = osp.join(self.save_dir, str(stamp.to_nsec()))
+                last_saved_pose = latest_msgs['/tf_to_pose/output'][1].pose
                 # import time
                 # date = time.strftime('%Y-%m-%d-%H-%M-%S',
                 #                      time.gmtime(stamp.to_nsec() * 1e-9))
                 print("Saving topics to '{}'".format(save_dir))
-                os.makedirs(save_dir)
+                if not osp.exists(save_dir):
+                    os.makedirs(save_dir)
                 for saving_topic in saving_topics:
                     _, msg = latest_msgs[saving_topic['name']]
                     if saving_topic['save_type'] == 'color_image':
@@ -117,13 +153,20 @@ class BagToDataset(object):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('bagfile')
-    parser.add_argument('dataset_dir')
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument('bagfile')
+    # parser.add_argument('dataset_dir')
+    # args = parser.parse_args()
+    # bagfile = args.bagfile
+    # save_dir = args.dataset_dir
 
-    bagfile = args.bagfile
-    save_dir = args.dataset_dir
+    rp = rospkg.RosPack()
+    pkg_path = rp.get_path('jsk_pr2_wandering')
+
+    bagfile = osp.join(
+        pkg_path, 'raw_data/data_with_camera_pose_2016-07-19-07-27-20.bag')
+    save_dir = osp.join(
+        pkg_path, 'raw_data/dataset_2016-07-19-07-27-20')
 
     converter = BagToDataset(bagfile, save_dir)
     saving_topics = [
