@@ -1,7 +1,7 @@
 <launch>
   <arg name="smach_topics" default="/server_name/smach/container_structure /server_name/smach/container_status" />
-  <arg name="marker_topics" default="/visualize_objectdetection_marker_array /visualization_marker /object_detection_marker_array /move_base_marker_array /spots_marker_array /spots_pictogram /kinect_head_c2/rgb/masked_objects_marker" />
-  <arg name="mask_topics" default="/kinect_head_c2/rgb/mask_fridge /kinect_head_c2/rgb/mask_drawer /kinect_head_c2/rgb/mask_table /kinect_head_c2/rgb/mask_door_left /kinect_head_c2/rgb/mask_door_right" />
+  <arg name="marker_topics" default="/visualize_objectdetection_marker_array /visualization_marker /object_detection_marker_array /move_base_marker_array /spots_marker_array /spots_pictogram /eus_model_to_bounding_box/output /eus_model_to_bounding_box/marker /kinect_head_c2/filtered_point_decomposer/label /kinect_head_c2/filtered_point_decomposer/debug_output" />
+  <arg name="mask_topics" default="/kinect_head_c2/filtered_point_decomposer/label /kinect_head_c2/filtered_point_decomposer/mask" />
   <arg name="navigation_topics" default="/move_base_node/local_costmap/costmap /move_base_node/global_costmap/costmap /eng2/7f" />
 
   <include file="$(find jsk_data)/launch/pr2_record.launch">

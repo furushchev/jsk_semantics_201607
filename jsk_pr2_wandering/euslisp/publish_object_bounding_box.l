@@ -44,6 +44,7 @@
       (send obj :newcoords cds)
       (send c :transform cds)
       (send parent :assoc obj)
+      (send parent :assoc c)
       (ros::ros-debug "c worldcoords: ~A" (send c :worldcoords))
       c)))
 
