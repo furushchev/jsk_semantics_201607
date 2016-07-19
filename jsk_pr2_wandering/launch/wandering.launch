@@ -7,7 +7,7 @@
         args="$(find jsk_pr2_wandering)/euslisp/wander.l"
         output="screen" if="$(arg enable_wander)"/>
 
-  <include file="$(find jsk_pr2_wandering)/launch/publish_mask_all.launch"
+  <include file="$(find jsk_pr2_wandering)/launch/publish_occluded_mask.launch"
            if="$(arg enable_mask)" />
   <include file="$(find jsk_pr2_wandering)/launch/record_data.launch"
            if="$(arg enable_logging)" />
