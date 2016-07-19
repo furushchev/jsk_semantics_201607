@@ -1,5 +1,5 @@
 <launch>
-  <arg name="machine" default="c1" />
+  <arg name="machine" default="c2" />
 
   <arg name="launch_manager" default="true" />
   <arg name="relay_input" default="true" />
@@ -10,9 +10,10 @@
   <arg name="approximate_sync" default="true" />
   <arg name="clip_masked_image" default="true" />
   <arg name="sync_queue_size" default="30" />
+  <arg name="bounding_box_padding_factor" default="1.2" />
 
-  <arg name="manager" default="publish_occluded_mask_nodelet_manager" />
-  <arg name="camera_ns" default="camera" />
+  <arg name="manager" default="occluded_mask_nodelet_manager" />
+  <arg name="camera_ns" default="kinect_head_c2" />
   <arg name="input_cloud" default="depth_registered/points" />
   <arg name="input_image" default="rgb/image_rect_color" />
   <arg name="input_camera_info" default="rgb/camera_info" />
@@ -29,6 +30,7 @@
         unless="$(arg test_mode)">
     <rosparam subst_value="true">
       publish_marker: $(arg publish_marker)
+      padding_factor: $(arg bounding_box_padding_factor)
       object_names:
       - room73b2-hitachi-fiesta-refrigerator
       - room73b2-karimoku-table
