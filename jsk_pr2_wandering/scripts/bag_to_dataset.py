@@ -26,7 +26,8 @@ class BagToDataset(object):
         self.bag = rosbag.Bag(bagfile)
         self.save_dir = save_dir
 
-    def convert(self, target_topic, saving_topics):
+    def convert(self, target_topic, saving_topics,
+                camera_moving_related_joints):
         """Save topics with synchronization to the target_topic"""
         # Validate
         for saving_topic in saving_topics:
@@ -39,7 +40,9 @@ class BagToDataset(object):
 
         queue = collections.defaultdict(deque)
         queue_size = 10
-        topics = [saving_topic['name'] for saving_topic in saving_topics]
+        camera_velocity = 0
+        topics = ['/joint_states'] + \
+                 [saving_topic['name'] for saving_topic in saving_topics]
         for topic, msg, stamp in self.bag.read_messages(topics=topics):
             # Cache to queue
             if len(queue[topic]) > queue_size:
@@ -48,16 +51,29 @@ class BagToDataset(object):
             if topic != target_topic:
                 continue
             # Save with synchronization to the target topic
-            saving_msgs = {}
-            for saving_topic in saving_topics:
-                if len(queue[saving_topic['name']]) == 0:
+            latest_msgs = {}
+            for topic in topics:
+                if len(queue[topic]) == 0:
                     break
                 # Run approximate synchronization to the target topic
                 t_delta, t, msg = sorted(
-                    (stamp - t, t, m) for t, m in queue[saving_topic['name']])[0]
-                saving_msgs[saving_topic['name']] = (t, msg)
+                    (stamp - t, t, m) for t, m in queue[topic])[0]
+                latest_msgs[topic] = (t, msg)
+                # Consider camera moving to skip image with blur
+                if topic == 'joint_states':
+                    for i_joint in len(joint_state.name):
+                        joint_name = joint_state.name[i_joint]
+                        joint_vel = joint_state.velocify[i_joint]
+                        if ((joint_name in camera_moving_related_joints) and
+                                (abs(joint_vel) > 0.1)):
+                            camera_is_moving = True
+                            break
+                    else:
+                        camera_is_moving = False
+                    if camera_is_moving:
+                        break
             else:
-                stamp, _ = saving_msgs[target_topic]
+                stamp, _ = latest_msgs[target_topic]
                 save_dir = osp.join(self.save_dir, str(stamp.to_nsec()))
                 # import time
                 # date = time.strftime('%Y-%m-%d-%H-%M-%S',
@@ -65,7 +81,7 @@ class BagToDataset(object):
                 print("Saving topics to '{}'".format(save_dir))
                 os.makedirs(save_dir)
                 for saving_topic in saving_topics:
-                    _, msg = saving_msgs[saving_topic['name']]
+                    _, msg = latest_msgs[saving_topic['name']]
                     if saving_topic['save_type'] == 'color_image':
                         bridge = cv_bridge.CvBridge()
                         img = bridge.imgmsg_to_cv2(msg, 'bgr8')
@@ -134,7 +150,29 @@ def main():
         },
     ]
     target_topic = '/kinect_head_c2/filtered_point_decomposer/label'
-    converter.convert(target_topic, saving_topics)
+    camera_moving_related_joints = [
+        'head_tilt_joint',
+        'head_pan_joint',
+        'fl_caster_rotation_joint',
+        'fl_caster_l_wheel_joint',
+        'fl_caster_r_wheel_joint',
+        'fr_caster_rotation_joint',
+        'fr_caster_l_wheel_joint',
+        'fr_caster_r_wheel_joint',
+        'bl_caster_rotation_joint',
+        'bl_caster_l_wheel_joint',
+        'bl_caster_r_wheel_joint',
+        'br_caster_rotation_joint',
+        'br_caster_l_wheel_joint',
+        'br_caster_r_wheel_joint',
+        'torso_lift_joint',
+        'torso_lift_motor_screw_joint',
+    ]
+    converter.convert(
+        target_topic,
+        saving_topics,
+        camera_moving_related_joints,
+    )
 
 
 if __name__ == '__main__':
