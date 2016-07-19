@@ -1,0 +1,63 @@
+<launch>
+
+  <arg name="bagfile_in" value="$(find jsk_pr2_wandering)/raw_data/data_2016-07-19-07-27-20.bag" />
+  <arg name="dataset_dir" value="$(find jsk_pr2_wandering)/raw_data/dataset_2016-07-19-07-27-20" />
+
+  <param name="/use_sim_time" value="true" />
+
+  <node name="rosbag_play"
+        pkg="rosbag" type="play"
+        args="$(arg bagfile_in) --clock"
+        output="screen">
+  </node>
+
+  <node name="data_collection_server" pkg="jsk_data" type="data_collection_server.py"
+        output="screen">
+    <rosparam subst_value="true">
+      save_dir: $(arg dataset_dir)
+      topics:
+        - name: /kinect_head/rgb/image_raw
+          msg_class: sensor_msgs/Image
+          fname: image.png
+          savetype: ColorImage
+        - name: /kinect_head/depth_registered/image_raw
+          msg_class: sensor_msgs/Image
+          fname: depth.pkl
+          savetype: DepthImage
+        - name: /kinect_head_c2/filtered_point_decomposer/label
+          msg_class: sensor_msgs/Image
+          fname: label.png
+          savetype: LabelImage
+    </rosparam>
+  </node>
+
+  <node name="camera_coords_change_trigger"
+        pkg="jsk_pr2_wandering" type="camera_coords_change_trigger.py"
+        output="screen">
+    <remap from="~trigger" to="data_collection_server/save_request" />
+  </node>
+
+  <!-- visualize -->
+  <node name="image_view0"
+        pkg="image_view" type="image_view">
+    <remap from="image" to="/kinect_head/rgb/image_raw" />
+  </node>
+  <node name="image_view1"
+        pkg="image_view" type="image_view">
+    <remap from="image" to="/kinect_head_c2/filtered_point_decomposer/label" />
+  </node>
+  <node name="label_image_decomposer"
+        pkg="jsk_perception" type="label_image_decomposer.py">
+    <remap from="~input" to="/kinect_head/rgb/image_raw" />
+    <remap from="~input/label" to="/kinect_head_c2/filtered_point_decomposer/label" />
+    <rosparam>
+      approximate_sync: true
+      queue_size: 100
+    </rosparam>
+  </node>
+  <node name="image_view2"
+        pkg="image_view" type="image_view">
+    <remap from="image" to="label_image_decomposer/output/label_viz" />
+  </node>
+
+</launch>
