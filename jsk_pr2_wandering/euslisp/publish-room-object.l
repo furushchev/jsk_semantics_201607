@@ -4,15 +4,14 @@
 (ros::load-ros-manifest "visualization_msgs")
 
 (require :pr2-interface "package://pr2eus/pr2-interface.l")
-(require :eng2-scene "package://jsk_maps/src/eng2-scene.l")
+(load "scene.l")
 
 (ros::roseus "publish_room_object")
 
 (defparameter *marker-array-topic* "/room_marker_array")
 (defparameter *marker-array-seq* 0)
 
-(defparameter *scene* (make-eng2-scene))
-;;(defparameter *robot* *pr2*)
+(load-scene)
 
 ;; fix pose
 (setq *fridge* (send *scene* :object "room73b2-hitachi-fiesta-refrigerator"))
@@ -20,7 +19,7 @@
 (setq *table* (send *scene* :object "room73b2-karimoku-table"))
 (send *table* :translate (float-vector -200 -200 0))
 
-(defun publish-markers ()
+(defun pub ()
   (let (
         objs
         (id 0)
