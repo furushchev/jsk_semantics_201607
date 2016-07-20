@@ -5,22 +5,21 @@
 
   <param name="/use_sim_time" value="true" />
 
-  <node name="rosbag_play"
-        pkg="rosbag" type="play"
-        args="$(arg bagfile_in) --clock"
-        output="screen">
-  </node>
+  <include file="$(find jsk_data)/launch/pr2_play.launch">
+    <arg name="bagfile_names" value="$(arg bagfile_in)" />
+    <arg name="camera" value="kinect_head" />
+  </include>
 
   <node name="data_collection_server" pkg="jsk_data" type="data_collection_server.py"
         output="screen">
     <rosparam subst_value="true">
       save_dir: $(arg dataset_dir)
       topics:
-        - name: /kinect_head/rgb/image_raw
+        - name: /kinect_head/rgb/image_rect_color
           msg_class: sensor_msgs/Image
           fname: image.png
           savetype: ColorImage
-        - name: /kinect_head/depth_registered/image_raw
+        - name: /kinect_head/depth_registered/hw_registered/image_rect_raw
           msg_class: sensor_msgs/Image
           fname: depth.pkl
           savetype: DepthImage
@@ -40,22 +39,29 @@
   <!-- visualize -->
   <node name="image_view0"
         pkg="image_view" type="image_view">
-    <remap from="image" to="/kinect_head/rgb/image_raw" />
+    <remap from="image" to="/kinect_head/rgb/image_rect_color" />
   </node>
   <node name="image_view1"
+        pkg="image_view" type="image_view">
+    <remap from="image" to="/kinect_head/depth_registered/hw_registered/image_rect_raw" />
+    <rosparam>
+      do_dynamic_scaling: true
+    </rosparam>
+  </node>
+  <node name="image_view2"
         pkg="image_view" type="image_view">
     <remap from="image" to="/kinect_head_c2/filtered_point_decomposer/label" />
   </node>
   <node name="label_image_decomposer"
         pkg="jsk_perception" type="label_image_decomposer.py">
-    <remap from="~input" to="/kinect_head/rgb/image_raw" />
+    <remap from="~input" to="/kinect_head/rgb/image_rect_color" />
     <remap from="~input/label" to="/kinect_head_c2/filtered_point_decomposer/label" />
     <rosparam>
       approximate_sync: true
       queue_size: 100
     </rosparam>
   </node>
-  <node name="image_view2"
+  <node name="image_view3"
         pkg="image_view" type="image_view">
     <remap from="image" to="label_image_decomposer/output/label_viz" />
   </node>
