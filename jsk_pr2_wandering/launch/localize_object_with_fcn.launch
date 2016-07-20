@@ -3,10 +3,12 @@
   <arg name="GPU" default="0" />
 
   <!-- default variables is for PR2 -->
-  <arg name="INPUT_IMAGE" default="/kinect_head_c2/rgb/image_rect_color" />
-  <arg name="INPUT_CLOUD" default="/kinect_head_c2/depth_registered/points" />
-  <arg name="FIXED_FRAME" default="/base_footprint" />
-  <arg name="MANAGER" default="/kinect_head_c2/kinect_head_c2_nodelet_manager" />
+  <arg name="INPUT_IMAGE" />
+  <arg name="INPUT_IMAGE_INFO" />
+  <arg name="INPUT_CLOUD" />
+  <arg name="INPUT_CLOUD_INFO" />
+  <arg name="FIXED_FRAME" />
+  <arg name="MANAGER" />
 
   <rosparam>
     target_names:
@@ -63,23 +65,15 @@
     </rosparam>
     <remap from="~label_names" to="target_names" />
   </node>
-  <node name="bbox_to_rect"
+  <node name="colorize_labels"
         pkg="nodelet" type="nodelet"
-        args="load jsk_perception/BoundingBoxToRect $(arg MANAGER)">
-    <remap from="~input" to="fcn_cluster_indices_decomposer/boxes" />
-  </node>
-  <node name="draw_rect_array"
-        pkg="jsk_perception" type="draw_rect_array.py">
-    <remap from="~input" to="$(arg INPUT_IMAGE)" />
-    <remap from="~input/rect_array" to="bbox_to_rect/output" />
-    <rosparam>
-      approximate_sync: true
-      queue_size: 500
-    </rosparam>
+        args="load jsk_perception/ColorizeLabels $(arg MANAGER)">
+    <remap from="~input" to="fcn_object_segmentation/output" />
   </node>
 
   <!-- GUI -->
 
+  <!--
   <node name="image_view0"
         pkg="image_view" type="image_view">
     <remap from="image" to="$(arg INPUT_IMAGE)" />
@@ -96,5 +90,6 @@
         pkg="image_view" type="image_view">
     <remap from="image" to="draw_rect_array/output" />
   </node>
+  -->
 
 </launch>
