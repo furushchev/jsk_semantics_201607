@@ -1,0 +1,29 @@
+<launch>
+
+  <!-- To filter the image with similar camera pose, this rosbag conversion is needed -->
+
+  <arg name="bagfile_in" value="$(find jsk_pr2_wandering)/raw_data/data_2016-07-19-07-27-20.bag" />
+  <arg name="bagfile_out" value="$(find jsk_pr2_wandering)/raw_data/data_with_camera_pose_2016-07-19-07-27-20.bag" />
+
+  <param name="/use_sim_time" value="true" />
+
+  <node name="rosbag_play"
+        pkg="rosbag" type="play"
+        args="$(arg bagfile_in) --clock">
+  </node>
+
+  <node name="tf_to_pose"
+        pkg="jsk_topic_tools" type="tf_to_pose.py">
+    <rosparam>
+      src_frame: /world
+      dst_frame: /head_mount_kinect_rgb_optical_frame
+      rate: 100
+    </rosparam>
+  </node>
+
+  <node name="rosbag_record"
+        pkg="rosbag" type="record"
+        args="--output-name $(arg bagfile_out) --all">
+  </node>
+
+</launch>
