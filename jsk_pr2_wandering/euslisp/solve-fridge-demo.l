@@ -77,8 +77,8 @@
        (instance pddl-action :init
                  :name "close-door"
                  :parameters '((?OBJ item))
-                 :precondition '((not (closed ?OBJ))
-                                 (reachable ?OBJ))
+                 :precondition '((not (closed ?OBJ)))
+;;                                 (reachable ?OBJ))
                  :effect '((closed ?OBJ)
                            (forall (?OBJ2 - item)
                             (when (in ?OBJ2 ?OBJ)
