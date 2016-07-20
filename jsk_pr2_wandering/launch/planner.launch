@@ -1,0 +1,7 @@
+<launch>
+  <include file="$(find pddl_planner)/launch/pddl_downward.launch" />
+  <node name="fridge_demo_plan"
+        pkg="jsk_pr2_wandering"  type="solve-fridge-demo.l" />
+  <node pkg="smach_viewer" name="smach_viewer"
+        type="smach_viewer.py" />
+</launch>
