@@ -1,0 +1,23 @@
+<launch>
+
+  <arg name="rviz" default="true" />
+
+  <group ns="fcn">
+    <include file="$(find jsk_pr2_wandering)/launch/localize_object_with_fcn.launch">
+      <arg name="INPUT_IMAGE" value="/kinect_head_c2/rgb/image_rect_color" />
+      <arg name="INPUT_IMAGE_INFO" value="/kinect_head_c2/rgb/camera_info" />
+      <arg name="INPUT_CLOUD" value="/kinect_head_c2/depth_registered/points" />
+      <arg name="INPUT_CLOUD_INFO" value="/kinect_head_c2/depth_registered/camera_info" />
+      <arg name="FIXED_FRAME" value="/base_footprint" />
+      <arg name="MANAGER" value="/kinect_head_c2/kinect_head_c2_nodelet_manager" />
+    </include>
+  </group>
+
+  <group if="$(arg rviz)">
+    <node name="rviz"
+          pkg="rviz" type="rviz"
+          args="-d $(find jsk_pr2_wandering)/config/pr2_localize_object_with_fcn.rviz">
+    </node>
+  </group>
+
+</launch>
