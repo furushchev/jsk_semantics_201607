@@ -88,15 +88,15 @@ Visualization Manager:
       Value: true
     - Class: jsk_rviz_plugin/BoundingBoxArray
       Enabled: true
-      Name: ObjectBoxes
-      Topic: /fcn/cluster_indices_decomposer/boxes
+      Name: TargetBox
+      Topic: /fcn/cluster_indices_decomposer_target/boxes
       Unreliable: false
       Value: true
       alpha: 0.8
       color: 25; 255; 0
       coloring: Auto
-      line width: 0.005
-      only edge: false
+      line width: 0.05
+      only edge: true
       show coords: false
     - Alpha: 1
       Class: rviz/RobotModel
@@ -595,6 +595,47 @@ Visualization Manager:
       left: 1000
       top: 0
       width: 500
+    - Class: jsk_rviz_plugin/OverlayImage
+      Enabled: true
+      Name: TargetMask
+      Topic: /fcn/bounding_object_mask/output
+      Value: true
+      alpha: 0.8
+      height: 128
+      keep aspect ratio: true
+      left: 1000
+      top: 400
+      width: 400
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: DetectedObjects
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 5
+      Size (m): 0.01
+      Style: Points
+      Topic: /fcn/cluster_indices_decomposer_all/debug_output
+      Unreliable: false
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -626,15 +667,15 @@ Visualization Manager:
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 7.19101
-        Y: 8.41738
-        Z: 0.54188
+        X: 7.14142
+        Y: 6.50013
+        Z: 0.675985
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.495398
+      Pitch: 0.220398
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 3.4004
+      Yaw: 2.8004
     Saved: ~
 Window Geometry:
   Displays:
@@ -652,5 +693,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1913
-  X: 72
-  Y: 85
+  X: 32
+  Y: 57
