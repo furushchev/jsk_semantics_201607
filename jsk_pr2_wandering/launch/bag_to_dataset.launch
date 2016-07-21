@@ -1,29 +1,32 @@
 <launch>
 
-  <arg name="bagfile_in" value="$(find jsk_pr2_wandering)/raw_data/data_2016-07-19-07-27-20.bag" />
-  <arg name="dataset_dir" value="$(find jsk_pr2_wandering)/raw_data/dataset_2016-07-19-07-27-20" />
+  <arg name="bagfile_in" />
+  <arg name="dataset_dir" />
 
   <param name="/use_sim_time" value="true" />
 
+  <arg name="camera" value="kinect_head_c2" />
   <include file="$(find jsk_data)/launch/pr2_play.launch">
     <arg name="bagfile_names" value="$(arg bagfile_in)" />
-    <arg name="camera" value="kinect_head" />
+    <arg name="camera" value="$(arg camera)" />
   </include>
+
+  <include file="$(find jsk_pr2_wandering)/launch/publish_occluded_mask.launch" />
 
   <node name="data_collection_server" pkg="jsk_data" type="data_collection_server.py"
         output="screen">
     <rosparam subst_value="true">
       save_dir: $(arg dataset_dir)
       topics:
-        - name: /kinect_head/rgb/image_rect_color
+        - name: $(arg camera)/rgb/image_rect_color
           msg_class: sensor_msgs/Image
           fname: image.png
           savetype: ColorImage
-        - name: /kinect_head/depth_registered/hw_registered/image_rect_raw
+        - name: $(arg camera)/depth_registered/hw_registered/image_rect_raw
           msg_class: sensor_msgs/Image
           fname: depth.pkl
           savetype: DepthImage
-        - name: /kinect_head_c2/filtered_point_decomposer/label
+        - name: $(arg camera)/filtered_point_decomposer/label
           msg_class: sensor_msgs/Image
           fname: label.png
           savetype: LabelImage
@@ -39,23 +42,23 @@
   <!-- visualize -->
   <node name="image_view0"
         pkg="image_view" type="image_view">
-    <remap from="image" to="/kinect_head/rgb/image_rect_color" />
+    <remap from="image" to="$(arg camera)/rgb/image_rect_color" />
   </node>
   <node name="image_view1"
         pkg="image_view" type="image_view">
-    <remap from="image" to="/kinect_head/depth_registered/hw_registered/image_rect_raw" />
+    <remap from="image" to="$(arg camera)/depth_registered/hw_registered/image_rect_raw" />
     <rosparam>
       do_dynamic_scaling: true
     </rosparam>
   </node>
   <node name="image_view2"
         pkg="image_view" type="image_view">
-    <remap from="image" to="/kinect_head_c2/filtered_point_decomposer/label" />
+    <remap from="image" to="$(arg camera)/filtered_point_decomposer/label" />
   </node>
   <node name="label_image_decomposer"
         pkg="jsk_perception" type="label_image_decomposer.py">
-    <remap from="~input" to="/kinect_head/rgb/image_rect_color" />
-    <remap from="~input/label" to="/kinect_head_c2/filtered_point_decomposer/label" />
+    <remap from="~input" to="$(arg camera)/rgb/image_rect_color" />
+    <remap from="~input/label" to="$(arg camera)/filtered_point_decomposer/label" />
     <rosparam>
       approximate_sync: true
       queue_size: 100
