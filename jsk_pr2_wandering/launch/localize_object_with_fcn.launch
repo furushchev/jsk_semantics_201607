@@ -8,7 +8,9 @@
   <arg name="INPUT_CLOUD" />
   <arg name="INPUT_CLOUD_INFO" />
   <arg name="FIXED_FRAME" />
+  <arg name="ON_C2" />
   <arg name="MANAGER" />
+  <arg name="MACHINE" default="c2" />
 
   <rosparam>
     target_names:
@@ -22,54 +24,62 @@
 
   <!-- Processing -->
 
-  <node name="fcn_object_segmentation"
-        pkg="jsk_perception" type="fcn_object_segmentation.py">
-    <remap from="~input" to="$(arg INPUT_IMAGE)" />
-    <rosparam subst_value="true">
-      gpu: $(arg GPU)
-      model_name: fcn32s
-      model_h5: $(find jsk_pr2_wandering)/trained_data/fcn32s_2000_2016-07-20-22-52-51.chainermodel
-    </rosparam>
-    <remap from="~target_names" to="target_names" />
-  </node>
+  <group unless="$(arg ON_C2)">
+    <node name="fcn_object_segmentation"
+          pkg="jsk_perception" type="fcn_object_segmentation.py">
+      <remap from="~input" to="$(arg INPUT_IMAGE)" />
+      <rosparam subst_value="true">
+        gpu: $(arg GPU)
+        model_name: fcn32s
+        model_h5: $(find jsk_pr2_wandering)/trained_data/fcn32s_2000_2016-07-20-22-52-51.chainermodel
+      </rosparam>
+      <remap from="~target_names" to="target_names" />
+    </node>
+  </group>
 
-  <node name="label_to_cluster_indices"
-        pkg="nodelet" type="nodelet"
-        args="load jsk_pcl_utils/LabelToClusterPointIndices $(arg MANAGER)">
-    <remap from="~input" to="fcn_object_segmentation/output" />
-  </node>
+  <group if="$(arg ON_C2)">
+    <node name="label_to_cluster_indices"
+          pkg="nodelet" type="nodelet"
+          args="load jsk_pcl_utils/LabelToClusterPointIndices $(arg MANAGER)"
+          machine="$(arg MACHINE)">
+      <remap from="~input" to="fcn_object_segmentation/output" />
+    </node>
 
-  <node name="cluster_indices_decomposer"
-        pkg="nodelet" type="nodelet"
-        args="load jsk_pcl/ClusterPointIndicesDecomposer $(arg MANAGER)">
-    <remap from="~input" to="$(arg INPUT_CLOUD)" />
-    <remap from="~target" to="label_to_cluster_indices/output" />
-    <rosparam subst_value="true">
-      approximate_sync: true
-      queue_size: 500
-      align_boxes: true
-      align_boxes_with_plane: false
-      target_frame_id: $(arg FIXED_FRAME)
-    </rosparam>
-  </node>
+    <node name="cluster_indices_decomposer"
+          pkg="nodelet" type="nodelet"
+          args="load jsk_pcl/ClusterPointIndicesDecomposer $(arg MANAGER)"
+          machine="$(arg MACHINE)">
+      <remap from="~input" to="$(arg INPUT_CLOUD)" />
+      <remap from="~target" to="label_to_cluster_indices/output" />
+      <rosparam subst_value="true">
+        approximate_sync: true
+        queue_size: 500
+        align_boxes: true
+        align_boxes_with_plane: false
+        target_frame_id: $(arg FIXED_FRAME)
+      </rosparam>
+    </node>
 
-  <!-- Visualization -->
+    <!-- Visualization -->
 
-  <node name="label_image_decomposer"
-        pkg="jsk_perception" type="label_image_decomposer.py">
-    <remap from="~input" to="$(arg INPUT_IMAGE)" />
-    <remap from="~input/label" to="fcn_object_segmentation/output" />
-    <rosparam>
-      approximate_sync: false
-      queue_size: 100
-    </rosparam>
-    <remap from="~label_names" to="target_names" />
-  </node>
-  <node name="colorize_labels"
-        pkg="nodelet" type="nodelet"
-        args="load jsk_perception/ColorizeLabels $(arg MANAGER)">
-    <remap from="~input" to="fcn_object_segmentation/output" />
-  </node>
+    <node name="label_image_decomposer"
+          pkg="jsk_perception" type="label_image_decomposer.py"
+          machine="$(arg MACHINE)">
+      <remap from="~input" to="$(arg INPUT_IMAGE)" />
+      <remap from="~input/label" to="fcn_object_segmentation/output" />
+      <rosparam>
+        approximate_sync: false
+        queue_size: 100
+      </rosparam>
+      <remap from="~label_names" to="target_names" />
+    </node>
+    <node name="colorize_labels"
+          pkg="nodelet" type="nodelet"
+          args="load jsk_perception/ColorizeLabels $(arg MANAGER)"
+          machine="$(arg MACHINE)">
+      <remap from="~input" to="fcn_object_segmentation/output" />
+    </node>
+  </group>
 
   <!-- GUI -->
 

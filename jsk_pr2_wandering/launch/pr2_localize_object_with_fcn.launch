@@ -1,6 +1,10 @@
 <launch>
 
+  <arg name="ON_C2" />
   <arg name="rviz" default="true" />
+
+  <include file="$(find pr2_machine)/pr2.machine" if="$(arg ON_C2)" />
+  <include file="$(find pr2_machine)/sim.machine" unless="$(arg ON_C2)" />
 
   <group ns="fcn">
     <include file="$(find jsk_pr2_wandering)/launch/localize_object_with_fcn.launch">
@@ -9,6 +13,8 @@
       <arg name="INPUT_CLOUD" value="/kinect_head_c2/depth_registered/points" />
       <arg name="INPUT_CLOUD_INFO" value="/kinect_head_c2/depth_registered/camera_info" />
       <arg name="FIXED_FRAME" value="/base_footprint" />
+      <arg name="ON_C2" value="$(arg ON_C2)" />
+      <arg name="MACHINE" value="c2" />
       <arg name="MANAGER" value="/kinect_head_c2/kinect_head_c2_nodelet_manager" />
     </include>
   </group>
