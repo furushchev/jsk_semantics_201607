@@ -1,0 +1,47 @@
+<launch>
+
+  <arg name="rviz" default="true" />
+
+  <machine name="localhost" address="localhost" />
+
+  <arg name="MANAGER" value="hrp2_localization_manager" />
+  <node name="$(arg MANAGER)"
+        pkg="nodelet" type="nodelet" args="manager" />
+
+  <!-- This is required because of HRP2 xetion problem:
+       https://github.com/start-jsk/rtmros_hrp2/issues/421 -->
+  <node name="passthrough_z"
+        pkg="nodelet" type="nodelet"
+        args="load pcl/PassThrough $(arg MANAGER)">
+    <remap from="~input" to="/camera_remote/depth_registered/points" />
+    <rosparam>
+      input_frame: /camera_rgb_optical_frame
+      filter_field_name: z
+      filter_limit_min: 0.1
+      filter_limit_max: 10.0
+      keep_organized: true
+    </rosparam>
+  </node>
+
+  <group ns="fcn">
+    <include file="$(find jsk_pr2_wandering)/launch/localize_object_with_fcn.launch">
+      <arg name="INPUT_IMAGE" value="/camera_remote/rgb/image_rect_color" />
+      <arg name="INPUT_IMAGE_INFO" value="/camera_remote/rgb/camera_info" />
+      <arg name="INPUT_CLOUD" value="/passthrough_z/output" />
+      <arg name="INPUT_CLOUD_INFO" value="/camera_remote/depth/camera_info" />
+      <arg name="FIXED_FRAME" value="BODY" />
+      <arg name="FCN" value="true" />
+      <arg name="PROCESSING" value="true" />
+      <arg name="MACHINE" value="localhost" />
+      <arg name="MANAGER" value="$(arg MANAGER)" />
+    </include>
+  </group>
+
+  <group if="$(arg rviz)">
+    <node name="rviz"
+          pkg="rviz" type="rviz"
+          args="-d $(find jsk_pr2_wandering)/config/hrp2_localize_object_with_fcn.rviz">
+    </node>
+  </group>
+
+</launch>

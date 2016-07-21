@@ -8,9 +8,11 @@
   <arg name="INPUT_CLOUD" />
   <arg name="INPUT_CLOUD_INFO" />
   <arg name="FIXED_FRAME" />
-  <arg name="ON_C2" />
   <arg name="MANAGER" />
   <arg name="MACHINE" default="c2" />
+
+  <arg name="FCN" />
+  <arg name="PROCESSING" />
 
   <rosparam>
     target_names:
@@ -24,7 +26,7 @@
 
   <!-- Processing -->
 
-  <group unless="$(arg ON_C2)">
+  <group if="$(arg FCN)">
     <node name="fcn_object_segmentation"
           pkg="jsk_perception" type="fcn_object_segmentation.py">
       <remap from="~input" to="$(arg INPUT_IMAGE)" />
@@ -37,7 +39,7 @@
     </node>
   </group>
 
-  <group if="$(arg ON_C2)">
+  <group if="$(arg PROCESSING)">
     <!-- label image -> largest target object mask -> point indices -> cluster indices -> boxes -->
     <node name="label_to_mask"
           pkg="nodelet" type="nodelet"
@@ -59,13 +61,13 @@
     </node>
     <node name="point_indices_to_cluster_indices"
           pkg="nodelet" type="nodelet"
-          args="load jsk_pcl_utils/PointIndicesToClusterPointIndices $(arg MANAGER)"
+          args="standalone jsk_pcl_utils/PointIndicesToClusterPointIndices $(arg MANAGER)"
           machine="$(arg MACHINE)">
       <remap from="~input" to="mask_to_point_indices/output" />
     </node>
     <node name="cluster_indices_decomposer_target"
           pkg="nodelet" type="nodelet"
-          args="load jsk_pcl/ClusterPointIndicesDecomposer $(arg MANAGER)"
+          args="standalone jsk_pcl/ClusterPointIndicesDecomposer $(arg MANAGER)"
           machine="$(arg MACHINE)">
       <remap from="~input" to="$(arg INPUT_CLOUD)" />
       <remap from="~target" to="point_indices_to_cluster_indices/output" />
@@ -81,13 +83,13 @@
     <!-- label image -> cluster indices -> boxes -->
     <node name="label_to_cluster_indices"
           pkg="nodelet" type="nodelet"
-          args="load jsk_pcl_utils/LabelToClusterPointIndices $(arg MANAGER)"
+          args="standalone jsk_pcl_utils/LabelToClusterPointIndices $(arg MANAGER)"
           machine="$(arg MACHINE)">
       <remap from="~input" to="fcn_object_segmentation/output" />
     </node>
     <node name="cluster_indices_decomposer_all"
           pkg="nodelet" type="nodelet"
-          args="load jsk_pcl/ClusterPointIndicesDecomposer $(arg MANAGER)"
+          args="standalone jsk_pcl/ClusterPointIndicesDecomposer $(arg MANAGER)"
           machine="$(arg MACHINE)">
       <remap from="~input" to="$(arg INPUT_CLOUD)" />
       <remap from="~target" to="label_to_cluster_indices/output" />
@@ -115,7 +117,7 @@
     </node>
     <node name="colorize_labels"
           pkg="nodelet" type="nodelet"
-          args="load jsk_perception/ColorizeLabels $(arg MANAGER)"
+          args="standalone jsk_perception/ColorizeLabels $(arg MANAGER)"
           machine="$(arg MACHINE)">
       <remap from="~input" to="fcn_object_segmentation/output" />
     </node>
