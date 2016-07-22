@@ -1,12 +1,10 @@
 <launch>
 
-  <arg name="GPU" default="0" />
+  <arg name="GPU" default="1" />
 
   <!-- default variables is for PR2 -->
   <arg name="INPUT_IMAGE" />
-  <arg name="INPUT_IMAGE_INFO" />
   <arg name="INPUT_CLOUD" />
-  <arg name="INPUT_CLOUD_INFO" />
   <arg name="FIXED_FRAME" />
   <arg name="MANAGER" />
   <arg name="MACHINE" default="c2" />
@@ -33,7 +31,7 @@
       <rosparam subst_value="true">
         gpu: $(arg GPU)
         model_name: fcn32s
-        model_h5: $(find jsk_pr2_wandering)/trained_data/fcn32s_2000_2016-07-20-22-52-51.chainermodel
+        model_h5: $(find jsk_pr2_wandering)/trained_data/fcn32s_4900.chainermodel
       </rosparam>
       <remap from="~target_names" to="target_names" />
     </node>
