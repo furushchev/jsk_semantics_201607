@@ -28,3 +28,30 @@ Number of images for each class:
   - room73b2-door-left: 14 (15.730337%)
   - room73b2-door-right: 1 (1.123596%)
 ```
+
+## Experiments
+
+### pr2
+
+- setup
+
+```bash
+# pr1012
+$ robot start
+$ roslaunch jsk_pr2_startup pr2_minimum.launch # only in my fork
+$ roslaunch cmd_vel_smoother cmd_vel_smoother.launch # only in my fork
+$ roslaunch jsk_pr2_wandering pr2_localize_object_with_fcn.launch ON_C2:=true rviz:=false
+```
+
+```bash
+# anaconda
+$ rossetmaster pr1012
+$ roslaunch jsk_pr2_wandering pr2_localize_object_with_fcn.launch ON_C2:=false rviz:=false
+```
+
+- run
+- 
+```bash
+# pr1012
+$ roslaunch jsk_pr2_wandering record_data_for_demo.launch # starts demo
+```
