@@ -40,40 +40,63 @@
   </group>
 
   <group if="$(arg PROCESSING)">
-    <!-- label image -> largest target object mask -> point indices -> cluster indices -> boxes -->
+    <!-- label image -> largest target object mask -> point indices -> point cloud -> cluster indices by euclidean clustering -> boxes -->
     <node name="label_to_mask"
           pkg="nodelet" type="nodelet"
           args="standalone jsk_perception/LabelToMaskImage $(arg MANAGER)"
           machine="$(arg MACHINE)">
       <remap from="~input" to="fcn_object_segmentation/output" />
     </node>
+    <!-- This fails in unknown environment:
+         label image -> largest target object mask -> point indices -> cluster indices -> boxes
     <node name="bounding_object_mask"
           pkg="nodelet" type="nodelet"
           args="standalone jsk_perception/BoundingObjectMaskImage $(arg MANAGER)"
           machine="$(arg MACHINE)">
       <remap from="~input" to="label_to_mask/output" />
     </node>
+    -->
     <node name="mask_to_point_indices"
           pkg="nodelet" type="nodelet"
           args="standalone jsk_pcl_utils/MaskImageToPointIndices $(arg MANAGER)"
           machine="$(arg MACHINE)">
-      <remap from="~input" to="bounding_object_mask/output" />
+      <!-- <remap from="~input" to="bounding_object_mask/output" /> -->
+      <remap from="~input" to="label_to_mask/output" />
     </node>
-    <node name="point_indices_to_cluster_indices"
+    <node name="extract_indices"
           pkg="nodelet" type="nodelet"
-          args="standalone jsk_pcl_utils/PointIndicesToClusterPointIndices $(arg MANAGER)"
+          args="standalone jsk_pcl/ExtractIndices $(arg MANAGER)"
           machine="$(arg MACHINE)">
-      <remap from="~input" to="mask_to_point_indices/output" />
+      <remap from="~input" to="$(arg INPUT_CLOUD)" />  <!-- depth timestamp -->
+      <remap from="~indices" to="mask_to_point_indices/output" />  <!-- 2d timestamp -->
+      <rosparam subst_value="true">
+        approximate_sync: true
+        queue_size: 300
+        keep_organized: true
+      </rosparam>
+      <!-- ~output has depth timestamp -->
+    </node>
+    <node name="euclidean_clustering"
+          pkg="nodelet" type="nodelet"
+          args="standalone jsk_pcl/EuclideanClustering $(arg MANAGER)"
+          machine="$(arg MACHINE)">
+      <remap from="~input" to="extract_indices/output" />
+      <rosparam subst_value="true">
+        min_size: 20
+        max_size: 50000
+        tolerance: 0.1
+      </rosparam>
+      <!-- ~output has depth timestamp -->
     </node>
     <node name="cluster_indices_decomposer_target"
           pkg="nodelet" type="nodelet"
           args="standalone jsk_pcl/ClusterPointIndicesDecomposer $(arg MANAGER)"
           machine="$(arg MACHINE)">
-      <remap from="~input" to="$(arg INPUT_CLOUD)" />
-      <remap from="~target" to="point_indices_to_cluster_indices/output" />
+      <remap from="~input" to="extract_indices/output" />  <!-- depth timestamp -->
+      <remap from="~target" to="euclidean_clustering/output" />  <!-- depth timestamp -->
       <rosparam subst_value="true">
-        approximate_sync: true
-        queue_size: 1000
+        approximate_sync: false 
+        queue_size: 100
         align_boxes: true
         align_boxes_with_plane: false
         target_frame_id: $(arg FIXED_FRAME)
