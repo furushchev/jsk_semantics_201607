@@ -1,14 +1,17 @@
 <launch>
+  <arg name="machine" default="c2" />
   <arg name="launch_demo" default="true" />
   <arg name="smach_topics" default="/server_name/smach/container_structure /server_name/smach/container_status" />
   <arg name="marker_topics" default="/visualize_objectdetection_marker_array /visualization_marker /object_detection_marker_array /move_base_marker_array /spots_marker_array /spots_pictogram /eus_model_to_bounding_box/output /eus_model_to_bounding_box/marker /kinect_head_c2/filtered_point_decomposer/label /kinect_head_c2/filtered_point_decomposer/debug_output" />
   <arg name="mask_topics" default="/kinect_head_c2/filtered_point_decomposer/label /kinect_head_c2/filtered_point_decomposer/mask" />
   <arg name="navigation_topics" default="/move_base_node/local_costmap/costmap /move_base_node/global_costmap/costmap /eng2/7f" />
-  <arg name="fcn_topics" default="/fcn/cluster_indices_decomposer_all/boxes /fcn/cluster_indices_decomposer_all/label /fcn/cluster_indices_decomposer_target/label /fcn/label_image_decomposer/output/label_viz /fcn/cluster_indices_decomposer_target/boxes /fcn/cluster_indices_decomposer_all/debug_output /fcn/bounding_object_mask/output" />
+  <arg name="fcn_topics" default="/fcn/cluster_indices_decomposer_all/boxes /fcn/cluster_indices_decomposer_all/label /fcn/cluster_indices_decomposer_target/label /fcn/label_image_decomposer/output/label_viz /fcn/cluster_indices_decomposer_target/boxes /fcn/cluster_indices_decomposer_all/debug_output /fcn/bounding_object_mask/output /fcn/colorize_labels/output" />
 
   <include file="$(find jsk_data)/launch/pr2_record.launch">
     <arg name="other_topics" value="$(arg mask_topics) $(arg navigation_topics) $(arg smach_topics) $(arg marker_topics) /tf $(arg fcn_topics)" />
     <arg name="other_options" value=""/>
+
+    <arg name="machine" value="$(arg machine)" />
 
     <!-- for PR2 -->
     <arg name="save_openni" value="true" />
