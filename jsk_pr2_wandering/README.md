@@ -31,7 +31,7 @@ Number of images for each class:
 
 ## Experiments
 
-### pr2
+### PR2
 
 - setup
 
@@ -50,7 +50,7 @@ $ roslaunch jsk_pr2_wandering pr2_localize_object_with_fcn.launch ON_C2:=false r
 ```
 
 - run
-- 
+
 ```bash
 # pr1012
 $ roslaunch jsk_pr2_wandering record_data_for_demo.launch # starts demo
