@@ -7,21 +7,67 @@
   <include file="$(find pr2_machine)/sim.machine" unless="$(arg ON_C2)" />
 
   <arg name="FCN" value="false" if="$(arg ON_C2)" />
-  <arg name="PROCESSING" value="true" if="$(arg ON_C2)" />
+  <arg name="PROCESSING" value="false" if="$(arg ON_C2)" />
   <arg name="FCN" value="true" unless="$(arg ON_C2)" />
-  <arg name="PROCESSING" value="false" unless="$(arg ON_C2)" />
+  <arg name="PROCESSING" value="true" unless="$(arg ON_C2)" />
+
+  <machine name="localhost" address="localhost" />
+
+  <!-- generate points on local pc -->
+  <arg name="camera" value="kinect_head_c3" />
+  <arg name="manager" value="$(arg camera)/$(arg camera)_nodelet_manager" />
+  <node name="relay_kinect_head_rgb_camera_info"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_topic_tools/Relay $(arg manager)">
+    <remap from="~input" to="/kinect_head/rgb/camera_info" />
+    <remap from="~output" to="/$(arg camera)/rgb/camera_info" />
+  </node>
+  <node name="relay_kinect_head_rgb_image_raw_compressed"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_topic_tools/Relay $(arg manager)">
+    <remap from="~input" to="/kinect_head/rgb/image_raw/compressed" />
+    <remap from="~output" to="/$(arg camera)/rgb/image_raw/compressed" />
+  </node>
+  <group ns="$(arg camera)/rgb">
+    <node name="$(anon republish_image_color)"
+          pkg="image_transport" type="republish"
+          args="compressed raw">
+      <remap from="in" to="image_raw" />
+      <remap from="out" to="image_raw" />
+    </node>
+  </group>
+  <node name="relay_kinect_head_depth_camera_info"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_topic_tools/Relay $(arg manager)">
+    <remap from="~input" to="/kinect_head/depth_registered/camera_info" />
+    <remap from="~output" to="/$(arg camera)/depth_registered/camera_info" />
+  </node>
+  <node name="relay_kinect_head_depth_image_raw"
+        pkg="nodelet" type="nodelet"
+        args="load jsk_topic_tools/Relay $(arg manager)">
+    <remap from="~input" to="/kinect_head/depth_registered/image_raw" />
+    <remap from="~output" to="/$(arg camera)/depth_registered/image_raw" />
+  </node>
+  <include file="$(find openni_launch)/launch/openni.launch">
+    <arg name="publish_tf" value="false" />
+    <arg name="camera" value="$(arg camera)" />
+    <arg name="depth_registration" value="true" />
+    <arg name="load_driver" value="false" />
+  </include>
+
+  <arg name="MANAGER" value="fcn_object_segmentation_manager" />
+  <node name="$(arg MANAGER)"
+        pkg="nodelet" type="nodelet" args="manager" />
 
   <group ns="fcn">
     <include file="$(find jsk_pr2_wandering)/launch/localize_object_with_fcn.launch">
-      <arg name="INPUT_IMAGE" value="/kinect_head_c2/rgb/image_rect_color" />
-      <arg name="INPUT_IMAGE_INFO" value="/kinect_head_c2/rgb/camera_info" />
-      <arg name="INPUT_CLOUD" value="/kinect_head_c2/depth_registered/points" />
-      <arg name="INPUT_CLOUD_INFO" value="/kinect_head_c2/depth_registered/camera_info" />
+      <arg name="INPUT_IMAGE" value="/kinect_head_c3/rgb/image_rect_color" />
+      <arg name="INPUT_CLOUD" value="/kinect_head_c3/depth_registered/points" />
       <arg name="FIXED_FRAME" value="/base_footprint" />
       <arg name="FCN" value="$(arg FCN)" />
       <arg name="PROCESSING" value="$(arg PROCESSING)" />
-      <arg name="MACHINE" value="c2" />
-      <arg name="MANAGER" value="/kinect_head_c2/kinect_head_c2_nodelet_manager" />
+      <arg name="MACHINE" value="localhost" />
+      <arg name="MANAGER" value="/$(arg MANAGER)" />
     </include>
   </group>
 
