@@ -21,6 +21,14 @@ def main():
         quiet=quiet,
     )
 
+    download_data(
+        pkg_name=PKG,
+        path='trained_data/fcn32s_4900.chainermodel',
+        url='https://drive.google.com/uc?id=0B9P1L--7Wd2vSUswWDNNNnhIVUE',
+        md5='a9b72901f162b1d6d4e6232a979a9625',
+        quiet=quiet,
+    )
+
 
 if __name__ == '__main__':
     main()
