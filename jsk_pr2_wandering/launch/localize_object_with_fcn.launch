@@ -8,6 +8,7 @@
   <arg name="FIXED_FRAME" />
   <arg name="MANAGER" />
   <arg name="MACHINE" default="c2" />
+  <arg name="QVGA" default="false" />
 
   <arg name="FCN" />
   <arg name="PROCESSING" />
@@ -38,12 +39,28 @@
   </group>
 
   <group if="$(arg PROCESSING)">
+    <node name="image_resizer"
+          pkg="nodelet" type="nodelet"
+          args="load resized_image_transport/ImageResizer $(arg MANAGER)"
+          if="$(arg QVGA)" >
+      <remap from="~input/image" to="fcn_object_segmentation/output" />
+      <remap from="~output/image" to="fcn_object_segmentation/output/half" />
+      <rosparam>
+        use_camera_info: false
+        resize_scale_x: 0.5
+        resize_scale_y: 0.5
+        interpolation: NEAREST
+      </rosparam>
+    </node>
+
     <!-- label image -> largest target object mask -> point indices -> point cloud -> cluster indices by euclidean clustering -> boxes -->
+    <arg name="FCN_OBJECT_SEGMENTATION_RESIZED_OUTPUT" value="fcn_object_segmentation/output" unless="$(arg QVGA)" />
+    <arg name="FCN_OBJECT_SEGMENTATION_RESIZED_OUTPUT" value="fcn_object_segmentation/output/half" if="$(arg QVGA)" />
     <node name="label_to_mask"
           pkg="nodelet" type="nodelet"
           args="load jsk_perception/LabelToMaskImage $(arg MANAGER)"
           machine="$(arg MACHINE)">
-      <remap from="~input" to="fcn_object_segmentation/output" />
+      <remap from="~input" to="$(arg FCN_OBJECT_SEGMENTATION_RESIZED_OUTPUT)" />
     </node>
     <!-- This fails in unknown environment:
          label image -> largest target object mask -> point indices -> cluster indices -> boxes
@@ -114,7 +131,7 @@
           pkg="nodelet" type="nodelet"
           args="load jsk_pcl_utils/LabelToClusterPointIndices $(arg MANAGER)"
           machine="$(arg MACHINE)">
-      <remap from="~input" to="fcn_object_segmentation/output" />
+      <remap from="~input" to="$(arg FCN_OBJECT_SEGMENTATION_RESIZED_OUTPUT)" />
     </node>
     <node name="cluster_indices_decomposer_all"
           pkg="nodelet" type="nodelet"
