@@ -34,9 +34,15 @@
   </node>
 
   <node name="camera_coords_change_trigger"
-        pkg="jsk_pr2_wandering" type="camera_coords_change_trigger.py"
+        pkg="jsk_data" type="camera_coords_change_trigger.py"
         output="screen">
     <remap from="~trigger" to="data_collection_server/save_request" />
+    <rosparam>
+      delta_position: 0.03
+      delta_orientation: 0.03
+      velocify_position: 0.01
+      velocify_orientation: 0.01
+    </rosparam>
   </node>
 
   <!-- visualize -->
